@@ -10,8 +10,15 @@ class HomePage extends React.Component {
         this.state = {
             user: {},
             pager: {},
-            pageOfItems: []
+            pageOfItems: [],
+            urls: [],
+            currentUrl: ''
         };
+
+        this.handleChange = this.handleChange.bind(this);
+        this.handleNewExecution = this.handleNewExecution.bind(this);
+        this.handleAddUrl = this.handleAddUrl.bind(this);
+        this.handleRemoveUrl = this.handleRemoveUrl.bind(this);
     }
 
     componentDidMount() {
@@ -28,7 +35,7 @@ class HomePage extends React.Component {
     loadPage() {
         const params = new URLSearchParams(location.search);
         const page = parseInt(params.get('page')) || 1;
-        if (page !== this.state.pager.currentPage) {
+        if (page !== this.state.pager.currentPage && this.state.pager.currentPage !== 0) {
             executionService.getExecutions(page, 10)
                 .then(({ count, rows }) => {
                     const pager = paginate(count, page, 10)
@@ -37,8 +44,36 @@ class HomePage extends React.Component {
         }
     }
 
+    handleChange(e) {
+        const value = e.target.value;
+        this.setState({ currentUrl: value });
+    }
+
+    handleAddUrl(e) {
+        e.preventDefault();
+        const { currentUrl, urls } = this.state;
+        urls.push(currentUrl);
+        this.setState({
+            urls,
+            currentUrl: ''
+        });
+    }
+
+    handleNewExecution(e) {
+        e.preventDefault();
+        const urls = this.state.urls;
+        executionService.submitExecution(urls).then(window.location.reload());
+    }
+
+    handleRemoveUrl(index, e) {
+        e.preventDefault();
+        const urls = [...this.state.urls];
+        urls.splice(index, 1)
+        this.setState({ urls })
+    }
+
     render() {
-        const { user, pager, pageOfItems } = this.state;
+        const { user, pager, pageOfItems, urls, currentUrl } = this.state;
         return (
             <div className="col-md-6 col-md-offset-3">
                 <h1>Hi {user.username}!</h1>
@@ -46,10 +81,18 @@ class HomePage extends React.Component {
                     <h3 className="card-header">List of Executions</h3>
                     <form name="form" onSubmit={this.handleNewExecution}>
                         <label>Input URLs:</label>
-                        <br/>
-                        <textarea rows="10" cols="60" name="text" placeholder="Enter text"></textarea>
+                        <br />
+                        {urls.map(url =>
+                            <div key={urls.indexOf(url)}>
+                                <label>{url}</label>
+                                <button className='btn btn-danger' onClick={(e) => this.handleRemoveUrl(urls.indexOf(url), e)}>Remove</button>
+                                <br />
+                            </div>
+                        )}
+                        <input type="text" className="form-control" name="url" value={currentUrl} onChange={this.handleChange} placeholder="https://example.com" />
+                        <button className='btn btn-primary' onClick={this.handleAddUrl}>Add URL</button>
+                        <button className='btn btn-success'>New Execution</button>
                     </form>
-                    <button className='btn btn-success'>New Execution</button>
                     <div className="card-body">
                         <table className="table">
                             <thead>
@@ -62,18 +105,18 @@ class HomePage extends React.Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pageOfItems.map(item => 
-                                    (<tr key={item.id}>
-                                        <td>{item.id}</td>
-                                        <td>{item.notes ? item.notes : null}</td>
-                                        <td>{item.createdAt}</td>
-                                        <td>
-                                            <Link to={{ pathname: '/images', search: `?executionId=${item.id}&page=1` }} className="btn btn-primary">Details</Link>
-                                        </td>
-                                        <td>
-                                            <Link to={{ pathname: '/videos', search: `?executionId=${item.id}&page=1` }} className="btn btn-danger">Details</Link>
-                                        </td>
-                                    </tr>)
+                                {pageOfItems.map(item =>
+                                (<tr key={item.id}>
+                                    <td>{item.id}</td>
+                                    <td>{item.notes ? item.notes : null}</td>
+                                    <td>{item.createdAt}</td>
+                                    <td>
+                                        <Link to={{ pathname: '/images', search: `?executionId=${item.id}&page=1` }} className="btn btn-primary">Details</Link>
+                                    </td>
+                                    <td>
+                                        <Link to={{ pathname: '/videos', search: `?executionId=${item.id}&page=1` }} className="btn btn-danger">Details</Link>
+                                    </td>
+                                </tr>)
                                 )}
                             </tbody>
                         </table>

@@ -2,7 +2,8 @@ import config from 'config';
 import { authHeader } from '../_helpers';
 
 export const executionService = {
-    getExecutions
+    getExecutions,
+    submitExecution
 };
 
 function getExecutions(pageIndex, pageSize) {
@@ -13,6 +14,16 @@ function getExecutions(pageIndex, pageSize) {
 
     return fetch(`${config.apiUrl}/executions?pageIndex=${pageIndex}&pageSize=${pageSize}`, requestOptions)
         .then(handleResponse);
+}
+
+function submitExecution(urls) {
+    const requestOptions = {
+        method: 'POST',
+        headers: authHeader('application/json'),
+        body: JSON.stringify({ urls }),
+    };
+
+    return fetch(`${config.apiUrl}/scrap`, requestOptions).then(handleResponse);
 }
 
 function handleResponse(response) {

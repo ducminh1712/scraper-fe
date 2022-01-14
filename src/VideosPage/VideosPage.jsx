@@ -31,7 +31,7 @@ class VideosPage extends React.Component {
         const params = new URLSearchParams(location.search);
         const page = parseInt(params.get('page')) || 1;
         const executionId = parseInt(params.get('executionId'));
-        if (page !== this.state.pager.currentPage) {
+        if (page !== this.state.pager.currentPage && this.state.pager.currentPage !== 0) {
             videoService.getVideos(executionId, page, 10)
                 .then(({ count, rows }) => {
                     const pager = paginate(count, page, 10)
@@ -49,9 +49,9 @@ class VideosPage extends React.Component {
                     <h3 className="card-header">List of Videos</h3>
                     <div className="card-body">
                         {pageOfItems.map(item =>
-                            (<Player key={item.id}>
-                                <source src={item.url} />
-                            </Player>)
+                        (<Player key={item.id}>
+                            <source src={item.url} />
+                        </Player>)
                         )}
                     </div>
                     <div className="card-footer pb-0 pt-3">
