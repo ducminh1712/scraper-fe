@@ -17,4 +17,8 @@ npm install
 ```sh
 npm start
 ```
+- Demo user to login:
 
+    username: minh
+    
+    password: minh
